@@ -1,13 +1,14 @@
 #                                               -*- Autoconf -*-
 
 AC_PREREQ([2.65])
-AC_INIT([tcpcrypt], [0.1], [tcpcrypt-users@lists.stanford.edu])
+AC_INIT([tcpcrypt], [0.2], [tcpcrypt-users@lists.stanford.edu])
 AC_CONFIG_SRCDIR([src/tcpcryptd.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([1.9 foreign])
+AM_MAINTAINER_MODE([disable])
 
 # Checks for programs.
 AC_PROG_CC
@@ -21,6 +22,8 @@ AC_MSG_CHECKING(OS)
 AM_CONDITIONAL(OS_BSD, [echo $host_os | grep -E 'darwin|freebsd'])
 AM_CONDITIONAL(OS_LINUX, [echo $host_os | grep linux])
 AM_CONDITIONAL(OS_MINGW, [echo $host_os | grep -E mingw])
+
+CFLAGS="$CFLAGS -Wall -Wno-deprecated-declarations"
 
 # DEBUG
 AC_ARG_ENABLE(debug, 

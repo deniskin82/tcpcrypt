@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include <tcpcrypt/tcpcrypt.h>
 #include "src/tcpcrypt_ctl.h"
@@ -94,11 +95,16 @@ static void set_ctl_sockaddr(union sockaddr_u *ss,
 	} else { // AF_INET6
 		if (IN6_IS_ADDR_V4COMPAT(&ss->in6.sin6_addr) ||
 		    IN6_IS_ADDR_V4MAPPED(&ss->in6.sin6_addr)) {
+#ifdef __WIN32__
+			assert(!"not implemented");
+			abort();
+#else
 #if !defined s6_addr32
 # define s6_addr32 __u6_addr.__u6_addr32
 #endif
 			*ctl_addr = ss->in6.sin6_addr.s6_addr32[3];
 			*ctl_port = ss->in6.sin6_port;
+#endif /* __WIN32__ */
 		} else {
 			/* TODO: add IPv6 support */
 			printf("Non-IPv4-compatible IPv6 addresses not supported."
@@ -119,8 +125,6 @@ static int do_sockopt(uint32_t flags, int s, int level, int optname,
 	struct tcpcrypt_ctl *ctl;
 	union sockaddr_u ss;
 	socklen_t sl = sizeof ss;
-	struct iovec iov[2];
-	struct msghdr mh;
 	int rc, len, i, port;
 	int set = flags & TCC_SET;
 
@@ -135,7 +139,8 @@ static int do_sockopt(uint32_t flags, int s, int level, int optname,
 		*optlen = MAX_LEN;
 	}
 
-	ctl = crap = alloca(sizeof(*ctl) + (*optlen));
+	crap = alloca(sizeof(*ctl) + (*optlen));
+	ctl  = (struct tcpcrypt_ctl*) crap;
 	if (!crap)
 		return -1;
 
